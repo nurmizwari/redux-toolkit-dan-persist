@@ -4,6 +4,7 @@ import Post from "./components/Post";
 import Navbar from "./components/Navbar";
 import { Routes, Route } from "react-router-dom";
 import AddPost from "./components/AddPost";
+import Login from "./components/Login";
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Post />} />
           <Route path="add-post" element={<AddPost />} />
+          <Route path="login" element={<Login />} />
         </Routes>
       </section>
     </div>
