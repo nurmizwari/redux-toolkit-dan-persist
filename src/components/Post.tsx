@@ -51,6 +51,12 @@ import { postType } from "../app/post/postSlice";
 import { deletePost } from "../app/post/postSlice";
 import Author from "./Author";
 import TimeAgo from "./TimeAgo";
+import DeleteIcon from "@mui/icons-material/Delete";
+import Snackbar from "@mui/material/Snackbar";
+import { Alert, Skeleton } from "@mui/material";
+import { LoadingButton } from "@mui/lab";
+import dayjs from "dayjs";
+import { closeSnackbar, showSnackbar } from "../app/snackBarSlice";
 
 const bull = (
   <Box
@@ -69,44 +75,143 @@ export default function BasicCard() {
   const dispatch = useDispatch();
 
   const hapus = (id: number) => {
-    dispatch(deletePost(id));
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      setOpen(true);
+      dispatch(deletePost(id));
+    }, 3000);
+  };
+
+  const [open, setOpen] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
+  const snackbarState = useSelector((state: any) => state.snackBar);
+
+  const handleClick = () => {
+    setOpen(true);
+  };
+
+  const handleClose = (
+    event?: React.SyntheticEvent | Event,
+    reason?: string
+  ) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setOpen(false);
   };
   return (
-    <div>
-      {posts.map((post: postType) => {
-        return (
-          <Card sx={{ minWidth: 275, marginTop: 2, boxShadow: 2 }}>
-            <CardContent>
-              <Typography
-                sx={{ fontSize: 14 }}
-                color="text.secondary"
-                gutterBottom
-              >
-                {post.title}
-              </Typography>
-              <Typography variant="h5" component="div">
-                {post.content.substr(0, 100)}...
-              </Typography>
-              <Typography variant="body2">
-                Ditulis oleh <Author userId={post.userId} />
-              </Typography>
-            </CardContent>
-            <CardActions>
-              <Button
-                onClick={() => hapus(post.id)}
-                size="large"
-                variant="contained"
-                sx={{ width: "100%" }}
-              >
-                Hapus
-              </Button>
-              {/* <button className="inline-flex items-center justify-center px-8 py-4 font-sans font-semibold tracking-wide text-white bg-blue-500 rounded-lg h-[30px]">
+    <>
+      <div>
+        {posts.map((post: postType) => {
+          console.log(post, "post maping");
+
+          return (
+            <Card sx={{ minWidth: 275, marginTop: 2, boxShadow: 2 }}>
+              <CardContent>
+                {/* <Typography
+                  // sx={{ fontSize: 14 }}
+                  color="text.secondary"
+                  variant="h5"
+                  gutterBottom
+                >
+                  {post.title}
+                </Typography> */}
+                {post.title ? (
+                  <Typography
+                    // sx={{ fontSize: 14 }}
+                    color="text.secondary"
+                    variant="h5"
+                    gutterBottom
+                  >
+                    {post.title}
+                  </Typography>
+                ) : (
+                  <Skeleton variant="rectangular" width={210} height={118} />
+                )}
+                {post.content ? (
+                  <Typography
+                    // sx={{ fontSize: 14 }}
+                    color="text.secondary"
+                    variant="h5"
+                    gutterBottom
+                  >
+                    {post.content.substr(0, 100)}...
+                  </Typography>
+                ) : (
+                  <Skeleton variant="rectangular" width={210} height={118} />
+                )}
+
+                <Typography variant="h5" component="div">
+                  {post.date}...
+                </Typography>
+                <Typography variant="body2">
+                  Ditulis oleh <Author userId={post.userId} />
+                </Typography>
+              </CardContent>
+              <CardActions>
+                {/* <Button
+                  onClick={() => hapus(post.id)}
+                  size="large"
+                  variant="contained"
+                  sx={{ width: "100%", marginBottom: 1 }}
+                  endIcon={<DeleteIcon />}
+                >
+                  Hapus
+                </Button> */}
+
+                <LoadingButton
+                  type="submit"
+                  size="large"
+                  // onClick={handleClick}
+                  loading={loading}
+                  variant="contained"
+                  fullWidth
+                  style={{ marginTop: 8 }}
+                  // onClick={handleClick}
+                  onClick={() => hapus(post.id)}
+                >
+                  <span>Hapus</span>
+                </LoadingButton>
+
+                {/* <button className="inline-flex items-center justify-center px-8 py-4 font-sans font-semibold tracking-wide text-white bg-blue-500 rounded-lg h-[30px]">
                 Hapus
               </button> */}
-            </CardActions>
-          </Card>
-        );
-      })}
-    </div>
+              </CardActions>
+            </Card>
+          );
+        })}
+      </div>
+
+      <div>
+        {/* <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
+          <Alert
+            onClose={handleClose}
+            severity="success"
+            sx={{ width: "100%" }}
+          >
+            Success Hapus ..
+          </Alert>
+        </Snackbar> */}
+        <Snackbar
+          open={snackbarState.isOpen}
+          autoHideDuration={6000}
+          onClose={() => dispatch(closeSnackbar())}
+          anchorOrigin={{
+            horizontal: "right",
+            vertical: "bottom",
+          }}
+        >
+          <Alert
+            onClose={() => dispatch(closeSnackbar())}
+            severity={snackbarState.variant}
+            sx={{ width: "100%" }}
+          >
+            {snackbarState.message}
+          </Alert>
+        </Snackbar>
+      </div>
+    </>
   );
 }

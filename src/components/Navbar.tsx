@@ -21,13 +21,20 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
-import { Stack } from "@mui/material";
+import { Slide, Stack, useScrollTrigger } from "@mui/material";
 import { Link } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export default function ButtonAppBar() {
+  let location = useLocation();
+  const navigate = useNavigate();
+  const logout: any = () => {
+    localStorage.clear();
+    navigate("/login");
+  };
   return (
-    <Box>
-      <AppBar position="static" sx={{ flexGrow: 1, backgroundColor: "grey" }}>
+    <Box sx={{ marginBottom: "100px" }}>
+      <AppBar position="fixed" sx={{ flexGrow: 1, backgroundColor: "grey" }}>
         <Toolbar>
           <IconButton
             size="large"
@@ -50,9 +57,22 @@ export default function ButtonAppBar() {
               <Link to={"/add-post"}>
                 <h6>Post</h6>
               </Link>
-              <Link to={"/login"}>
-                <h6>Login</h6>
+              <Link to={"/api"}>
+                <h6>API</h6>
               </Link>
+              {location.pathname == "/" ? (
+                <></>
+              ) : (
+                <Link to={"/login"}>
+                  <h6>Login</h6>
+                </Link>
+              )}
+              <Typography
+                onClick={() => logout()}
+                style={{ cursor: "pointer" }}
+              >
+                Logout
+              </Typography>
             </Stack>
           </div>
         </Toolbar>

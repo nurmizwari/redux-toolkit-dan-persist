@@ -104,10 +104,19 @@ import { useDispatch, useSelector } from "react-redux";
 import { nanoid } from "@reduxjs/toolkit";
 import { useNavigate } from "react-router-dom";
 import { userType } from "../app/users/userSLice";
-import { Autocomplete, TextField } from "@mui/material";
+import { Autocomplete, TextField, Alert } from "@mui/material";
 import * as yup from "yup";
 import { useFormik } from "formik";
+import SendIcon from "@mui/icons-material/Send";
 import TextareaAutosize from "@mui/base/TextareaAutosize";
+import LoadingButton from "@mui/lab/LoadingButton";
+import Snackbar from "@mui/material/Snackbar";
+import MuiAlert, { AlertProps } from "@mui/material/Alert";
+import { DesktopDatePicker } from "@mui/x-date-pickers/DesktopDatePicker";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import dayjs, { Dayjs } from "dayjs";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 
 const bull = (
   <Box
@@ -123,10 +132,7 @@ const validationSchema = yup.object({
     .string()
     .max(10, "Must be 15 characters or less")
     .required("Required"),
-  content: yup
-    .string()
-    .max(100, "Must be 15 characters or less")
-    .required("Required"),
+  content: yup.string().max(100, "Max 100 characters").required("Required"),
 });
 
 export default function AddPost() {
@@ -140,90 +146,177 @@ export default function AddPost() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+  const [loading, setLoading] = React.useState(false);
+  const [open, setOpen] = React.useState(false);
+  // function handleClick() {
+  //   setLoading(true);
+  // }
+
   const formik = useFormik({
     initialValues: {
       title: "",
       content: "",
       users: null,
+      // date: "",
     },
     validationSchema: validationSchema,
     onSubmit: (values: any) => {
       console.log(values, "values formik");
+      setLoading(true);
       let obj = {
         id: nanoid(),
         title: values.title,
         content: values.content,
         userId: values.users.id,
+        // date: new Date(),
       };
       dispatch(addPost(obj));
-      navigate("/");
+      setTimeout(() => {
+        setOpen(true);
+      }, 5000);
+      setTimeout(() => {
+        navigate("/");
+      }, 6000);
     },
   });
 
+  const handleClose = (
+    event?: React.SyntheticEvent | Event,
+    reason?: string
+  ) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setOpen(false);
+  };
+
+  const handleClick = () => {
+    setOpen(true);
+  };
+
+  const [value, setValue] = React.useState<Dayjs | null>(dayjs());
+
+  const handleChange = (newValue: Dayjs | null) => {
+    setValue(newValue);
+    formik.setFieldValue("date", newValue);
+    console.log(value, "value day js");
+  };
+
   return (
-    <Card sx={{ minWidth: 275 }}>
-      <CardContent>
-        <Typography
-          textAlign={"center"}
-          sx={{ fontSize: 14 }}
-          color="text.secondary"
-          gutterBottom
-        >
-          Add Post
-        </Typography>
-        <form action="" onSubmit={formik.handleSubmit}>
-          <TextField
-            sx={{ width: "100%" }}
-            name="title"
-            id="outlined-basic"
-            label="Title"
-            variant="outlined"
-            onChange={formik.handleChange}
-            value={formik.values.title}
-            error={formik.touched.title && Boolean(formik.errors.title)}
-            helperText={formik.touched.title && formik.errors.title}
-          />
-          <Autocomplete
-            disablePortal
-            id="combo-box-demo"
-            options={users}
-            sx={{ width: "100%", marginTop: 2 }}
-            getOptionLabel={(option) => option.user}
-            isOptionEqualToValue={(option, value) => option.id === value.id}
-            value={formik.values.users}
-            onChange={(e, value) => {
-              formik.setFieldValue("users", value);
-            }}
-            renderInput={(params) => <TextField {...params} label="Penulis" />}
-          />
-          {/* <CardActions> */}
-          <TextField
-            name="content"
-            rows={5}
-            multiline
-            onChange={formik.handleChange}
-            value={formik.values.content}
-            aria-label="minimum height"
-            // minRows={3}
-            placeholder="Minimum 3 rows"
-            style={{
-              width: "100%",
-              marginTop: 10,
-            }}
-            error={formik.touched.title && Boolean(formik.errors.title)}
-            helperText={formik.touched.title && formik.errors.title}
-          />
-          <Button
+    <>
+      <Card sx={{ minWidth: 275 }}>
+        <CardContent>
+          <Typography
+            textAlign={"center"}
+            sx={{ fontSize: 14 }}
+            color="text.secondary"
+            gutterBottom
+          >
+            Add Post
+          </Typography>
+          <form action="" onSubmit={formik.handleSubmit}>
+            <TextField
+              sx={{ width: "100%" }}
+              name="title"
+              id="outlined-basic"
+              label="Title"
+              variant="outlined"
+              onChange={formik.handleChange}
+              value={formik.values.title}
+              error={formik.touched.title && Boolean(formik.errors.title)}
+              helperText={formik.touched.title && formik.errors.title}
+            />
+            <Autocomplete
+              disablePortal
+              id="combo-box-demo"
+              options={users}
+              sx={{ width: "100%", marginTop: 2 }}
+              getOptionLabel={(option) => option.user}
+              isOptionEqualToValue={(option, value) => option.id === value.id}
+              value={formik.values.users}
+              onChange={(e, value) => {
+                formik.setFieldValue("users", value);
+              }}
+              renderInput={(params) => (
+                <TextField {...params} label="Penulis" />
+              )}
+            />
+            {/* <CardActions> */}
+
+            {/* <LocalizationProvider
+              dateAdapter={AdapterDayjs}
+              style={{ width: "100%" }}
+            >
+              <div style={{ width: "100%", marginTop: 10 }}>
+                <DesktopDatePicker
+                  label="Date desktop"
+                  inputFormat="MM/DD/YYYY"
+                  value={value}
+                  onChange={formik.handleChange}
+                  // onChange={(e, value) => {
+                  //   console.log(value, "value dari date picker");
+                  //   // formik.setFieldValue("date", value);
+                  // }}
+                  renderInput={(params) => <TextField {...params} />}
+                  // style={{ width: "100%" }}
+                />
+              </div>
+            </LocalizationProvider> */}
+            <TextField
+              name="content"
+              rows={5}
+              multiline
+              onChange={formik.handleChange}
+              value={formik.values.content}
+              aria-label="minimum height"
+              // minRows={3}
+              placeholder="Minimum 3 rows"
+              style={{
+                width: "100%",
+                marginTop: 10,
+              }}
+              error={formik.touched.title && Boolean(formik.errors.title)}
+              helperText={formik.touched.title && formik.errors.title}
+            />
+            {/* <Button
             size="large"
             variant="contained"
             sx={{ width: "100%", marginTop: 2 }}
             type="submit"
+            endIcon={<SendIcon />}
           >
             POSTING
-          </Button>
-          {/* </CardActions> */}
-        </form>
-      </CardContent>
-    </Card>
+          </Button> */}
+
+            <LoadingButton
+              type="submit"
+              size="large"
+              // onClick={handleClick}
+              loading={loading}
+              variant="contained"
+              fullWidth
+              style={{ marginTop: 8 }}
+              // onClick={handleClick}
+            >
+              <span>Posting</span>
+            </LoadingButton>
+
+            {/* </CardActions> */}
+          </form>
+        </CardContent>
+      </Card>
+      <div>
+        <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
+          <Alert
+            onClose={handleClose}
+            severity="success"
+            sx={{ width: "100%" }}
+          >
+            Success Add Post!
+          </Alert>
+        </Snackbar>
+      </div>
+    </>
   );
 }
